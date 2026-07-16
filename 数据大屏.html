@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>云上党 · 古树名木数据大屏</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="dash-grid">
+    <header class="topbar">
+      <div class="brand">
+        <h1>云上党 · 古树名木数据大屏</h1>
+        <p>总览区域古树资源态势，并与地图点位联动展示单点详情。</p>
+      </div>
+      <nav class="nav">
+        <a href="index.html">返回首页</a>
+        <a class="primary" id="backMap" href="map.html">返回地图</a>
+      </nav>
+    </header>
+    <section class="kpis" id="kpis"></section>
+    <section class="dash-layout">
+      <div class="col">
+        <section class="card"><h2>乡镇古树数量排行</h2><div class="bar-list" id="townBars"></div></section>
+        <section class="card"><h2>树种分布</h2><div class="bar-list" id="speciesBars"></div></section>
+      </div>
+      <div class="col">
+        <section class="card detail-card" id="detailCard"></section>
+        <section class="card"><h2>点位分布示意</h2><div class="mini-map" id="miniMap"></div></section>
+      </div>
+      <div class="col">
+        <section class="card">
+          <h2>等级与生长势</h2>
+          <div class="donuts">
+            <div class="donut-card"><div class="donut" id="gradeDonut"></div><div class="legend" id="gradeLegend"></div></div>
+            <div class="donut-card"><div class="donut" id="growthDonut"></div><div class="legend" id="growthLegend"></div></div>
+          </div>
+        </section>
+        <section class="card"><h2>生长环境</h2><div class="bar-list" id="envBars"></div></section>
+        <section class="card"><h2>权属分布</h2><div class="bar-list" id="ownershipBars"></div></section>
+      </div>
+    </section>
+    <footer class="footer"><span>数据来源：上党区古树名木.xlsx</span><span>联动字段：古树名木编号 id</span></footer>
+  </main>
+  <script src="data.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

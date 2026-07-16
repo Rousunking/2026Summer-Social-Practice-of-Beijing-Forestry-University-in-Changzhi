@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>云上党 · 文旅景点专题地图</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="map-page">
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <h1>云上党 · 文旅景点专题地图</h1>
+        <p>上党区文旅景点与古镇资源专题图层。</p>
+      </div>
+      <nav class="nav">
+        <a href="index.html">返回首页</a>
+        <a class="primary" href="map.html">古树名木地图</a>
+      </nav>
+    </header>
+    <section class="grid">
+      <aside class="panel sidebar">
+        <input id="search" class="search" placeholder="搜索景点名称、乡镇" />
+        <div class="layers">
+          <button class="layer active" data-layer="scenic">自然景观</button>
+          <button class="layer" data-layer="cultural">人文古迹</button>
+          <button class="layer" data-layer="ancient">古镇古村</button>
+          <button class="layer" data-layer="red">红色旅游</button>
+        </div>
+        <div id="pointList" class="list"></div>
+      </aside>
+      <section class="panel map-wrap">
+        <div id="map"></div>
+        <div id="fallbackMap" class="fallback-map">
+          <div class="fallback-region"></div>
+          <div id="fallbackPopup" class="fallback-popup"></div>
+        </div>
+        <div id="status" class="status">文旅景点专题图层展示中</div>
+        <button id="centerBtn" class="center-btn">居中上党区</button>
+      </section>
+    </section>
+  </main>
+  <script src="config.js?v=20260702"></script>
+  <script src="data.js?v=20260702"></script>
+  <script>
+    const TOUR_DATA = {
+      scenic: [
+        { id: "S001", name: "老雄山风景区", town: "西火镇", level: "省级", lng: 113.13, lat: 35.95, desc: "上党名山，自然风光秀丽，森林覆盖率高" },
+        { id: "S002", name: "五龙山", town: "荫城镇", level: "市级", lng: 113.17, lat: 35.94, desc: "天然氧吧，登山健身好去处" },
+        { id: "S003", name: "羊头岭", town: "南宋镇", level: "县级", lng: 113.05, lat: 35.92, desc: "俯瞰上党全景的最佳观景点" },
+        { id: "S004", name: "神山湖", town: "苏店镇", level: "市级", lng: 113.14, lat: 36.09, desc: "人工湖景观，休闲垂钓胜地" },
+        { id: "S005", name: "天台山", town: "郝家庄镇", level: "省级", lng: 113.02, lat: 36.13, desc: "女娲补天传说发源地" },
+      ],
+      cultural: [
+        { id: "C001", name: "法云寺", town: "荫城镇", level: "省级文保", lng: 113.12, lat: 35.95, desc: "宋代古寺，建筑风格独特" },
+        { id: "C002", name: "崇教寺", town: "八义镇", level: "国家级文保", lng: 113.02, lat: 35.97, desc: "北宋佛教寺院，历史悠久" },
+        { id: "C003", name: "玉皇观", town: "南宋镇", level: "省级文保", lng: 113.06, lat: 35.92, desc: "明代道教建筑，雕刻精美" },
+        { id: "C004", name: "东泰山庙", town: "苏店镇", level: "市级文保", lng: 113.10, lat: 36.10, desc: "明清古建筑群" },
+        { id: "C005", name: "黎都公园", town: "韩店街道", level: "城市公园", lng: 113.04, lat: 36.05, desc: "上党区中心城市公园，文化休闲" },
+      ],
+      ancient: [
+        { id: "A001", name: "荫城古镇", town: "荫城镇", level: "中国历史文化名镇", lng: 113.12, lat: 35.95, desc: "千年铁府，明清古街保存完好" },
+        { id: "A002", name: "西火古镇", town: "西火镇", level: "省级历史文化名镇", lng: 113.11, lat: 35.97, desc: "明清商贸重镇，古民居众多" },
+        { id: "A003", name: "八义村", town: "八义镇", level: "省级历史文化名村", lng: 113.02, lat: 35.97, desc: "宋代陶瓷产地，历史文化深厚" },
+        { id: "A004", name: "振兴村", town: "振兴新区", level: "全国文明村", lng: 113.09, lat: 36.00, desc: "乡村振兴示范村，旅游名村" },
+        { id: "A005", name: "原村", town: "苏店镇", level: "传统村落", lng: 113.15, lat: 36.08, desc: "千年古村落，保存完整" },
+      ],
+      red: [
+        { id: "R001", name: "北天河烈士亭", town: "荫城镇", level: "县级", lng: 113.14, lat: 35.98, desc: "纪念抗日战争牺牲烈士" },
+        { id: "R002", name: "西沟纪念馆", town: "南宋镇", level: "市级", lng: 113.08, lat: 35.93, desc: "西沟村红色教育基地" },
+        { id: "R003", name: "上党战役纪念馆", town: "韩店街道", level: "省级", lng: 113.04, lat: 36.05, desc: "上党战役历史纪念" },
+      ],
+    };
+    const LAYER_LABELS = { scenic: "自然景观", cultural: "人文古迹", ancient: "古镇古村", red: "红色旅游" };
+    const LAYER_COLORS = { scenic: "#3fa7d6", cultural: "#7b88d1", ancient: "#f3b63f", red: "#f47b64" };
+    let currentLayer = "scenic";
+    let activeId = null;
+    function qs(sel, root=document){ return root.querySelector(sel); }
+    function qsa(sel, root=document){ return [...root.querySelectorAll(sel)]; }
+    function esc(v){ return String(v ?? "").replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
+    function currentData(){ return TOUR_DATA[currentLayer] || []; }
+    function renderList(){
+      const data = currentData();
+      const keyword = qs("#search").value.trim().toLowerCase();
+      const rows = keyword ? data.filter(p => [p.name, p.town].some(v => String(v).toLowerCase().includes(keyword))) : data;
+      qs("#pointList").innerHTML = rows.map(p => `<div class="item ${p.id===activeId?'active':''}" data-id="${esc(p.id)}">
+        <strong>${esc(p.name)}</strong>
+        <span>${esc(p.town)}｜${esc(p.level)}</span>
+      </div>`).join("");
+      qsa(".item").forEach(el => el.addEventListener("click", () => selectPoint(el.dataset.id)));
+    }
+    function updateListActive(){
+      qsa("#pointList .item").forEach(el => {
+        el.classList.toggle("active", el.dataset.id === activeId);
+      });
+    }
+    function pointXY(p){
+      const allData = Object.values(TOUR_DATA).flat();
+      const pts = allData.filter(x => Number.isFinite(x.lng) && Number.isFinite(x.lat));
+      const lngs = pts.map(x => x.lng), lats = pts.map(x => x.lat);
+      const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+      const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+      return {
+        x: (p.lng - minLng) / Math.max(maxLng - minLng, .0001) * 72 + 14,
+        y: (1 - (p.lat - minLat) / Math.max(maxLat - minLat, .0001)) * 68 + 17
+      };
+    }
+    function renderFallback(){
+      const fm = qs("#fallbackMap");
+      fm.classList.add("visible");
+      fm.querySelectorAll(".layer-dot").forEach(dot => dot.remove());
+      currentData().forEach(p => {
+        if(!Number.isFinite(p.lng) || !Number.isFinite(p.lat)) return;
+        const {x,y} = pointXY(p);
+        const dot = document.createElement("span");
+        dot.className = `layer-dot ${p.id===activeId ? "active" : ""}`;
+        dot.style.left = `${x}%`;
+        dot.style.top = `${y}%`;
+        dot.style.background = LAYER_COLORS[currentLayer];
+        dot.textContent = currentLayer === "scenic" ? "景" : currentLayer === "cultural" ? "文" : currentLayer === "ancient" ? "古" : "红";
+        dot.title = p.name;
+        dot.addEventListener("click", () => selectPoint(p.id));
+        fm.appendChild(dot);
+      });
+    }
+    function pointHtml(p){
+      return `<div class="popup">
+        <div class="popup-head">
+          <span class="popup-kicker">${LAYER_LABELS[currentLayer]}</span>
+          <h3>${esc(p.name)}</h3>
+          <div class="popup-tags">
+            <span class="tag-sample">${esc(p.level)}</span>
+            <span>${esc(p.town)}</span>
+          </div>
+        </div>
+        <div class="popup-facts">
+          <div class="fact-location"><b>位置</b><span>${esc(p.town)}</span></div>
+          <div><b>等级</b><span>${esc(p.level)}</span></div>
+        </div>
+        <p class="popup-source">${esc(p.desc)}</p>
+      </div>`;
+    }
+    function selectPoint(id){
+      activeId = id;
+      const p = currentData().find(x => x.id === id);
+      updateListActive();
+      renderFallback();
+      const popup = qs("#fallbackPopup");
+      const {x, y} = pointXY(p);
+      popup.innerHTML = `<button class="popup-close" title="关闭">&times;</button>` + pointHtml(p);
+      popup.style.left = `${x}%`;
+      popup.style.top = `${y}%`;
+      popup.classList.toggle("flip-below", y < 30);
+      popup.classList.add("visible");
+      popup.querySelector(".popup-close")?.addEventListener("click", closeInfo);
+    }
+    function closeInfo(){
+      activeId = null;
+      updateListActive();
+      qs("#fallbackPopup")?.classList.remove("visible");
+      renderFallback();
+    }
+    function toggleLayer(layerName){
+      currentLayer = layerName;
+      qsa(".layer").forEach(btn => btn.classList.toggle("active", btn.dataset.layer === layerName));
+      activeId = null;
+      qs("#fallbackPopup")?.classList.remove("visible");
+      renderList();
+      renderFallback();
+      qs("#status").innerHTML = `${LAYER_LABELS[layerName]}图层已显示`;
+    }
+    qsa(".layer").forEach(btn => btn.addEventListener("click", () => toggleLayer(btn.dataset.layer)));
+    qs("#search").addEventListener("input", () => { renderList(); renderFallback(); });
+    qs("#fallbackPopup")?.addEventListener("click", e => e.stopPropagation());
+    qs("#fallbackMap")?.addEventListener("click", e => { if(e.target === e.currentTarget && activeId) closeInfo(); });
+    qs("#centerBtn").addEventListener("click", () => {
+      qs("#status").innerHTML = "地图已居中到上党区";
+      setTimeout(() => {
+        qs("#status").innerHTML = `${LAYER_LABELS[currentLayer]}专题图层展示中`;
+      }, 2500);
+    });
+    renderList();
+    renderFallback();
+  </script>
+</body>
+</html>

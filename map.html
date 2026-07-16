@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>云上党 · 数字地图</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="map-page">
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <h1>云上党 · 古树名木数字地图</h1>
+        <p>以高德地图为底图，联动古树名木点位详情与生态数据大屏。</p>
+      </div>
+      <nav class="nav">
+        <a href="index.html">返回首页</a>
+        <a class="primary" id="dashLink" href="数据大屏.html">进入数据大屏</a>
+        <a href="config.js" target="_blank">配置高德 Key</a>
+      </nav>
+    </header>
+    <section class="grid">
+      <aside class="panel sidebar">
+        <input id="search" class="search" placeholder="搜索编号、树种、乡镇、村名" />
+        <div id="pointList" class="list"></div>
+      </aside>
+      <section class="panel map-wrap">
+        <div id="map"></div>
+        <div id="fallbackMap" class="fallback-map">
+          <div class="fallback-region"></div>
+          <div id="fallbackPopup" class="fallback-popup"></div>
+        </div>
+        <div id="status" class="status"></div>
+        <button id="centerBtn" class="center-btn">居中上党区</button>
+      </section>
+    </section>
+  </main>
+  <script src="config.js?v=20260702"></script>
+  <script src="data.js?v=20260702"></script>
+  <script src="app.js?v=20260702"></script>
+</body>
+</html>

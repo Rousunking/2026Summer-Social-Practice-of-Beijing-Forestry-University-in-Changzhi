@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>云上党 · 保护规划专题地图</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="map-page">
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <h1>云上党 · 保护规划专题地图</h1>
+        <p>古树保护核心区与示范带规划图层。</p>
+      </div>
+      <nav class="nav">
+        <a href="index.html">返回首页</a>
+        <a class="primary" href="map.html">古树名木地图</a>
+      </nav>
+    </header>
+    <section class="grid">
+      <aside class="panel sidebar">
+        <input id="search" class="search" placeholder="搜索规划区域、乡镇" />
+        <div class="layers">
+          <button class="layer active" data-layer="core">核心保护区</button>
+          <button class="layer" data-layer="buffer">缓冲带</button>
+          <button class="layer" data-layer="belt">示范带</button>
+          <button class="layer" data-layer="project">保护项目</button>
+        </div>
+        <div id="pointList" class="list"></div>
+      </aside>
+      <section class="panel map-wrap">
+        <div id="map"></div>
+        <div id="fallbackMap" class="fallback-map">
+          <div class="fallback-region"></div>
+          <div id="fallbackPopup" class="fallback-popup"></div>
+        </div>
+        <div id="status" class="status">保护规划专题图层展示中</div>
+        <button id="centerBtn" class="center-btn">居中上党区</button>
+      </section>
+    </section>
+  </main>
+  <script src="config.js?v=20260702"></script>
+  <script src="data.js?v=20260702"></script>
+  <script>
+    const PLAN_DATA = {
+      core: [
+        { id: "C001", name: "荫城古树核心保护区", town: "荫城镇", area: "2.5平方公里", level: "一级保护", lng: 113.12, lat: 35.96, desc: "集中保护24株古树，限制开发活动" },
+        { id: "C002", name: "八义古树核心保护区", town: "八义镇", area: "1.8平方公里", level: "一级保护", lng: 113.02, lat: 35.97, desc: "保护4株一级古树及周边生态" },
+        { id: "C003", name: "苏店古树核心保护区", town: "苏店镇", area: "2.0平方公里", level: "二级保护", lng: 113.13, lat: 36.09, desc: "5株古树集中保护区域" },
+        { id: "C004", name: "郝家庄古树核心保护区", town: "郝家庄镇", area: "1.5平方公里", level: "二级保护", lng: 113.01, lat: 36.11, desc: "7株古树保护区域" },
+        { id: "C005", name: "西火古树核心保护区", town: "西火镇", area: "1.2平方公里", level: "三级保护", lng: 113.11, lat: 35.96, desc: "5株古树保护区域" },
+      ],
+      buffer: [
+        { id: "B001", name: "荫城缓冲带", town: "荫城镇", width: "500米", lng: 113.12, lat: 35.96, desc: "核心区周边500米缓冲，限制建设" },
+        { id: "B002", name: "八义缓冲带", town: "八义镇", width: "300米", lng: 113.02, lat: 35.97, desc: "核心区周边300米缓冲" },
+        { id: "B003", name: "苏店缓冲带", town: "苏店镇", width: "400米", lng: 113.13, lat: 36.09, desc: "核心区周边400米缓冲" },
+        { id: "B004", name: "南宋缓冲带", town: "南宋镇", width: "300米", lng: 113.06, lat: 35.93, desc: "3株古树周边缓冲区域" },
+      ],
+      belt: [
+        { id: "BL001", name: "荫城-八义古树示范带", towns: "荫城镇、八义镇", length: "15公里", lng: 113.07, lat: 35.96, desc: "串联两镇古树资源，打造生态景观带" },
+        { id: "BL002", name: "苏店-郝家庄示范带", towns: "苏店镇、郝家庄镇", length: "12公里", lng: 113.08, lat: 36.10, desc: "沿长陵公路的古树景观示范带" },
+        { id: "BL003", name: "西火-南宋生态带", towns: "西火镇、南宋镇", length: "10公里", lng: 113.09, lat: 35.95, desc: "南部山区古树生态保护带" },
+      ],
+      project: [
+        { id: "P001", name: "古树复壮工程", town: "全区", phase: "一期", lng: 113.04, lat: 36.05, desc: "对20株衰弱、濒危古树实施复壮救治" },
+        { id: "P002", name: "围栏保护项目", town: "全区", phase: "一期", lng: 113.04, lat: 36.05, desc: "为30株古树安装防护围栏" },
+        { id: "P003", name: "监测系统建设", town: "全区", phase: "二期", lng: 113.04, lat: 36.05, desc: "建立古树健康监测物联网系统" },
+        { id: "P004", name: "科普宣传工程", town: "全区", phase: "二期", lng: 113.04, lat: 36.05, desc: "古树文化科普宣传与教育基地建设" },
+      ],
+    };
+    const LAYER_LABELS = { core: "核心保护区", buffer: "缓冲带", belt: "示范带", project: "保护项目" };
+    const LAYER_COLORS = { core: "#f47b64", buffer: "#f3b63f", belt: "#3fa7d6", project: "#7b88d1" };
+    let currentLayer = "core";
+    let activeId = null;
+    function qs(sel, root=document){ return root.querySelector(sel); }
+    function qsa(sel, root=document){ return [...root.querySelectorAll(sel)]; }
+    function esc(v){ return String(v ?? "").replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
+    function currentData(){ return PLAN_DATA[currentLayer] || []; }
+    function renderList(){
+      const data = currentData();
+      const keyword = qs("#search").value.trim().toLowerCase();
+      const rows = keyword ? data.filter(p => [p.name, p.town, p.towns].some(v => String(v).toLowerCase().includes(keyword))) : data;
+      qs("#pointList").innerHTML = rows.map(p => `<div class="item ${p.id===activeId?'active':''}" data-id="${esc(p.id)}">
+        <strong>${esc(p.name)}</strong>
+        <span>${esc(p.town || p.towns)}｜${esc(p.level || p.phase || p.length || p.width)}</span>
+      </div>`).join("");
+      qsa(".item").forEach(el => el.addEventListener("click", () => selectPoint(el.dataset.id)));
+    }
+    function updateListActive(){
+      qsa("#pointList .item").forEach(el => {
+        el.classList.toggle("active", el.dataset.id === activeId);
+      });
+    }
+    function pointXY(p){
+      const allData = Object.values(PLAN_DATA).flat();
+      const pts = allData.filter(x => Number.isFinite(x.lng) && Number.isFinite(x.lat));
+      const lngs = pts.map(x => x.lng), lats = pts.map(x => x.lat);
+      const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+      const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+      return {
+        x: (p.lng - minLng) / Math.max(maxLng - minLng, .0001) * 72 + 14,
+        y: (1 - (p.lat - minLat) / Math.max(maxLat - minLat, .0001)) * 68 + 17
+      };
+    }
+    function renderFallback(){
+      const fm = qs("#fallbackMap");
+      fm.classList.add("visible");
+      fm.querySelectorAll(".layer-dot").forEach(dot => dot.remove());
+      currentData().forEach(p => {
+        if(!Number.isFinite(p.lng) || !Number.isFinite(p.lat)) return;
+        const {x,y} = pointXY(p);
+        const dot = document.createElement("span");
+        dot.className = `layer-dot ${p.id===activeId ? "active" : ""}`;
+        dot.style.left = `${x}%`;
+        dot.style.top = `${y}%`;
+        dot.style.background = LAYER_COLORS[currentLayer];
+        dot.textContent = currentLayer === "core" ? "核" : currentLayer === "buffer" ? "缓" : currentLayer === "belt" ? "带" : "项";
+        dot.title = p.name;
+        dot.addEventListener("click", () => selectPoint(p.id));
+        fm.appendChild(dot);
+      });
+    }
+    function pointHtml(p){
+      const attrs = [];
+      if(p.area) attrs.push(["面积", p.area]);
+      if(p.width) attrs.push(["宽度", p.width]);
+      if(p.length) attrs.push(["长度", p.length]);
+      if(p.level) attrs.push(["保护等级", p.level]);
+      if(p.phase) attrs.push(["项目阶段", p.phase]);
+      return `<div class="popup">
+        <div class="popup-head">
+          <span class="popup-kicker">${LAYER_LABELS[currentLayer]}</span>
+          <h3>${esc(p.name)}</h3>
+          <div class="popup-tags">
+            <span class="tag-sample">${esc(p.level || p.phase || "规划区域")}</span>
+            <span>${esc(p.town || p.towns)}</span>
+          </div>
+        </div>
+        <div class="popup-facts">
+          <div class="fact-location"><b>位置</b><span>${esc(p.town || p.towns)}</span></div>
+          ${attrs.map(([k, v]) => `<div><b>${esc(k)}</b><span>${esc(v)}</span></div>`).join("")}
+        </div>
+        <p class="popup-source">${esc(p.desc)}</p>
+      </div>`;
+    }
+    function selectPoint(id){
+      activeId = id;
+      const p = currentData().find(x => x.id === id);
+      updateListActive();
+      renderFallback();
+      const popup = qs("#fallbackPopup");
+      const {x, y} = pointXY(p);
+      popup.innerHTML = `<button class="popup-close" title="关闭">&times;</button>` + pointHtml(p);
+      popup.style.left = `${x}%`;
+      popup.style.top = `${y}%`;
+      popup.classList.toggle("flip-below", y < 30);
+      popup.classList.add("visible");
+      popup.querySelector(".popup-close")?.addEventListener("click", closeInfo);
+    }
+    function closeInfo(){
+      activeId = null;
+      updateListActive();
+      qs("#fallbackPopup")?.classList.remove("visible");
+      renderFallback();
+    }
+    function toggleLayer(layerName){
+      currentLayer = layerName;
+      qsa(".layer").forEach(btn => btn.classList.toggle("active", btn.dataset.layer === layerName));
+      activeId = null;
+      qs("#fallbackPopup")?.classList.remove("visible");
+      renderList();
+      renderFallback();
+      qs("#status").innerHTML = `${LAYER_LABELS[layerName]}图层已显示`;
+    }
+    qsa(".layer").forEach(btn => btn.addEventListener("click", () => toggleLayer(btn.dataset.layer)));
+    qs("#search").addEventListener("input", () => { renderList(); renderFallback(); });
+    qs("#fallbackPopup")?.addEventListener("click", e => e.stopPropagation());
+    qs("#fallbackMap")?.addEventListener("click", e => { if(e.target === e.currentTarget && activeId) closeInfo(); });
+    qs("#centerBtn").addEventListener("click", () => {
+      qs("#status").innerHTML = "地图已居中到上党区";
+      setTimeout(() => {
+        qs("#status").innerHTML = `${LAYER_LABELS[currentLayer]}专题图层展示中`;
+      }, 2500);
+    });
+    renderList();
+    renderFallback();
+  </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>云上党 · 林场资源专题地图</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="map-page">
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <h1>云上党 · 林场资源专题地图</h1>
+        <p>上党区重点林场与防护林分布专题图层。</p>
+      </div>
+      <nav class="nav">
+        <a href="index.html">返回首页</a>
+        <a class="primary" href="map.html">古树名木地图</a>
+      </nav>
+    </header>
+    <section class="grid">
+      <aside class="panel sidebar">
+        <input id="search" class="search" placeholder="搜索林场名称、乡镇" />
+        <div class="layers">
+          <button class="layer active" data-layer="forest">林场资源</button>
+          <button class="layer" data-layer="protection">防护林</button>
+        </div>
+        <div id="pointList" class="list"></div>
+      </aside>
+      <section class="panel map-wrap">
+        <div id="map"></div>
+        <div id="fallbackMap" class="fallback-map">
+          <div class="fallback-region"></div>
+          <div id="fallbackPopup" class="fallback-popup"></div>
+        </div>
+        <div id="status" class="status">林场资源专题图层展示中</div>
+        <button id="centerBtn" class="center-btn">居中上党区</button>
+      </section>
+    </section>
+  </main>
+  <script src="config.js?v=20260702"></script>
+  <script src="data.js?v=20260702"></script>
+  <script>
+    const FOREST_DATA = [
+      { id: "F001", name: "老爷山林场", town: "西火镇", area: "2300亩", type: "生态公益林", lng: 113.13, lat: 35.98, desc: "以侧柏、油松为主的生态防护林" },
+      { id: "F002", name: "五龙山林场", town: "荫城镇", area: "1800亩", type: "商品林", lng: 113.16, lat: 35.95, desc: "核桃、花椒经济林种植基地" },
+      { id: "F003", name: "羊头岭林场", town: "南宋镇", area: "1500亩", type: "生态公益林", lng: 113.06, lat: 35.93, desc: "天然次生林保护区" },
+      { id: "F004", name: "神山森林公园", town: "苏店镇", area: "2100亩", type: "森林公园", lng: 113.14, lat: 36.10, desc: "集生态保护与旅游观光于一体" },
+      { id: "F005", name: "天台山林场", town: "郝家庄镇", area: "1200亩", type: "生态公益林", lng: 113.02, lat: 36.13, desc: "女娲文化发源地周边防护林" },
+      { id: "F006", name: "老雄山北坡林场", town: "八义镇", area: "2800亩", type: "生态公益林", lng: 112.97, lat: 35.95, desc: "上党区最大的天然林保护区" },
+      { id: "F007", name: "振兴林场", town: "振兴新区", area: "800亩", type: "森林公园", lng: 113.09, lat: 35.99, desc: "乡村旅游配套绿化林带" },
+      { id: "F008", name: "东和林场", town: "韩店街道", area: "600亩", type: "商品林", lng: 113.05, lat: 36.02, desc: "育苗基地与经济林" },
+    ];
+    const PROTECTION_DATA = [
+      { id: "P001", name: "漳河沿岸防护林", town: "荫城镇", length: "12公里", type: "水土保持林", lng: 113.12, lat: 35.96, desc: "沿漳河两岸的水土保持防护林带" },
+      { id: "P002", name: "长陵公路绿化带", town: "苏店镇", length: "8公里", type: "道路防护林", lng: 113.10, lat: 36.08, desc: "长陵公路两侧绿化防护带" },
+      { id: "P003", name: "高铁沿线防护林", town: "郝家庄镇", length: "6公里", type: "生态隔离带", lng: 113.01, lat: 36.11, desc: "高铁沿线生态防护隔离带" },
+      { id: "P004", name: "县城周边绿化带", town: "韩店街道", length: "15公里", type: "环城防护林", lng: 113.04, lat: 36.05, desc: "上党区城区周边环城绿化" },
+    ];
+    let currentLayer = "forest";
+    let activeId = null;
+    function qs(sel, root=document){ return root.querySelector(sel); }
+    function qsa(sel, root=document){ return [...root.querySelectorAll(sel)]; }
+    function esc(v){ return String(v ?? "").replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
+    function currentData(){ return currentLayer === "forest" ? FOREST_DATA : PROTECTION_DATA; }
+    function renderList(){
+      const data = currentData();
+      const keyword = qs("#search").value.trim().toLowerCase();
+      const rows = keyword ? data.filter(p => [p.name, p.town, p.type].some(v => String(v).toLowerCase().includes(keyword))) : data;
+      qs("#pointList").innerHTML = rows.map(p => `<div class="item ${p.id===activeId?'active':''}" data-id="${esc(p.id)}">
+        <strong>${esc(p.name)}</strong>
+        <span>${esc(p.town)}｜${esc(p.type)}｜${esc(p.area || p.length)}</span>
+      </div>`).join("");
+      qsa(".item").forEach(el => el.addEventListener("click", () => selectPoint(el.dataset.id)));
+    }
+    function updateListActive(){
+      qsa("#pointList .item").forEach(el => {
+        el.classList.toggle("active", el.dataset.id === activeId);
+      });
+    }
+    function pointXY(p){
+      const data = currentData();
+      const pts = data.filter(x => Number.isFinite(x.lng) && Number.isFinite(x.lat));
+      const lngs = pts.map(x => x.lng), lats = pts.map(x => x.lat);
+      const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+      const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+      return {
+        x: (p.lng - minLng) / Math.max(maxLng - minLng, .0001) * 72 + 14,
+        y: (1 - (p.lat - minLat) / Math.max(maxLat - minLat, .0001)) * 68 + 17
+      };
+    }
+    function renderFallback(){
+      const fm = qs("#fallbackMap");
+      fm.classList.add("visible");
+      fm.querySelectorAll(".layer-dot").forEach(dot => dot.remove());
+      currentData().forEach(p => {
+        if(!Number.isFinite(p.lng) || !Number.isFinite(p.lat)) return;
+        const {x,y} = pointXY(p);
+        const dot = document.createElement("span");
+        dot.className = `layer-dot ${p.id===activeId ? "active" : ""}`;
+        dot.style.left = `${x}%`;
+        dot.style.top = `${y}%`;
+        dot.style.background = currentLayer === "forest" ? "#2a8c3a" : "#4cae50";
+        dot.textContent = currentLayer === "forest" ? "林" : "护";
+        dot.title = p.name;
+        dot.addEventListener("click", () => selectPoint(p.id));
+        fm.appendChild(dot);
+      });
+    }
+    function pointHtml(p){
+      return `<div class="popup">
+        <div class="popup-head">
+          <span class="popup-kicker">${currentLayer === "forest" ? "林场" : "防护林"}</span>
+          <h3>${esc(p.name)}</h3>
+          <div class="popup-tags">
+            <span class="tag-sample">${esc(p.type)}</span>
+            <span>${esc(p.town)}</span>
+          </div>
+        </div>
+        <div class="popup-facts">
+          <div class="fact-location"><b>位置</b><span>${esc(p.town)}</span></div>
+          <div><b>面积/长度</b><span>${esc(p.area || p.length)}</span></div>
+          <div><b>类型</b><span>${esc(p.type)}</span></div>
+        </div>
+        <p class="popup-source">${esc(p.desc)}</p>
+      </div>`;
+    }
+    function selectPoint(id){
+      activeId = id;
+      const p = currentData().find(x => x.id === id);
+      updateListActive();
+      renderFallback();
+      const popup = qs("#fallbackPopup");
+      const {x, y} = pointXY(p);
+      popup.innerHTML = `<button class="popup-close" title="关闭">&times;</button>` + pointHtml(p);
+      popup.style.left = `${x}%`;
+      popup.style.top = `${y}%`;
+      popup.classList.toggle("flip-below", y < 30);
+      popup.classList.add("visible");
+      popup.querySelector(".popup-close")?.addEventListener("click", closeInfo);
+    }
+    function closeInfo(){
+      activeId = null;
+      updateListActive();
+      qs("#fallbackPopup")?.classList.remove("visible");
+      renderFallback();
+    }
+    function toggleLayer(layerName){
+      currentLayer = layerName;
+      qsa(".layer").forEach(btn => btn.classList.toggle("active", btn.dataset.layer === layerName));
+      activeId = null;
+      qs("#fallbackPopup")?.classList.remove("visible");
+      renderList();
+      renderFallback();
+      qs("#status").innerHTML = `${layerName === "forest" ? "林场资源" : "防护林"}图层已显示`;
+    }
+    qsa(".layer").forEach(btn => btn.addEventListener("click", () => toggleLayer(btn.dataset.layer)));
+    qs("#search").addEventListener("input", () => { renderList(); renderFallback(); });
+    qs("#fallbackPopup")?.addEventListener("click", e => e.stopPropagation());
+    qs("#fallbackMap")?.addEventListener("click", e => { if(e.target === e.currentTarget && activeId) closeInfo(); });
+    qs("#centerBtn").addEventListener("click", () => {
+      qs("#status").innerHTML = "地图已居中到上党区";
+      setTimeout(() => {
+        qs("#status").innerHTML = `${currentLayer === "forest" ? "林场资源" : "防护林"}专题图层展示中`;
+      }, 2500);
+    });
+    renderList();
+    renderFallback();
+  </script>
+</body>
+</html>
