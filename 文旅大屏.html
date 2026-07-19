@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>云上党 · 文旅景点数据大屏</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="dash-grid">
+    <header class="topbar">
+      <div class="brand">
+        <h1>云上党 · 文旅景点数据大屏</h1>
+        <p>总览区域文旅资源态势，并与地图点位联动展示单点详情。</p>
+      </div>
+      <nav class="nav">
+        <a href="index.html">返回首页</a>
+        <a class="primary" id="backMap" href="tour.html">返回地图</a>
+      </nav>
+    </header>
+    <section class="kpis" id="kpis"></section>
+    <section class="dash-layout">
+      <div class="col">
+        <section class="card"><h2>乡镇景点数量排行</h2><div class="bar-list" id="townBars"></div></section>
+        <section class="card"><h2>景点等级分布</h2><div class="bar-list" id="levelBars"></div></section>
+      </div>
+      <div class="col">
+        <section class="card detail-card" id="detailCard"><h2>当前景点详情</h2><select class="dash-select" id="pointSelect"></select><div id="detailContent"></div></section>
+        <section class="card"><h2>点位分布示意</h2><div class="mini-map" id="miniMap"></div></section>
+      </div>
+      <div class="col">
+        <section class="card">
+          <h2>体验业态分析</h2>
+          <div class="donuts">
+            <div class="donut-card"><div class="donut" id="typeDonut"></div><div class="legend" id="typeLegend"></div></div>
+            <div class="donut-card"><div class="donut" id="levelDonut"></div><div class="legend" id="levelLegend"></div></div>
+          </div>
+        </section>
+        <section class="card"><h2>特色美食统计</h2><div class="bar-list" id="foodBars"></div></section>
+        <section class="card"><h2>景点列表</h2><div class="list" id="pointList"></div></section>
+      </div>
+    </section>
+    <footer class="footer"><span>数据来源：上党区文旅局</span><span>联动字段：景点编号 id</span></footer>
+  </main>
+  <script src="data.js"></script>
+  <script src="文旅大屏.js"></script>
+  <script src="page-enter.js"></script>
+  <script src="dash-align.js"></script>
+</body>
+</html>

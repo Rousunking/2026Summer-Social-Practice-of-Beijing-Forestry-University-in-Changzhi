@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>云上党 · 特色饮食数据大屏</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="dash-grid">
+    <header class="topbar">
+      <div class="brand">
+        <h1>云上党 · 特色饮食数据大屏</h1>
+        <p>总览上党区美食资源态势，联动地图点位展示美食详情。</p>
+      </div>
+      <nav class="nav">
+        <a href="index.html">返回首页</a>
+        <a class="primary" id="backMap" href="agri.html">返回地图</a>
+      </nav>
+    </header>
+    <section class="card" id="overviewCard">
+      <h2>上党区美食概况</h2>
+      <p id="overviewText"></p>
+    </section>
+    <section class="kpis" id="kpis"></section>
+    <section class="dash-layout">
+      <div class="col">
+        <section class="card"><h2>乡镇美食数量排行</h2><div class="bar-list" id="townBars"></div></section>
+        <section class="card"><h2>美食类别分布</h2><div class="bar-list" id="categoryBars"></div></section>
+      </div>
+      <div class="col">
+        <section class="card detail-card" id="detailCard"><h2>当前美食详情</h2><select class="dash-select" id="foodSelect"></select><div id="detailContent"></div></section>
+        <section class="card"><h2>乡镇分布示意</h2><div class="mini-map" id="miniMap"></div></section>
+      </div>
+      <div class="col">
+        <section class="card">
+          <h2>美食类别统计</h2>
+          <div class="donuts">
+            <div class="donut-card"><div class="donut" id="categoryDonut"></div><div class="legend" id="categoryLegend"></div></div>
+          </div>
+        </section>
+        <section class="card"><h2>美食快速索引</h2><div class="list" id="foodIndex"></div></section>
+      </div>
+    </section>
+    <footer class="footer"><span>数据来源：上党区文旅局</span><span>联动字段：美食编号 id</span></footer>
+  </main>
+  <script src="food_data.js"></script>
+  <script src="food_dashboard.js"></script>
+  <script src="page-enter.js"></script>
+  <script src="dash-align.js"></script>
+</body>
+</html>

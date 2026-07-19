@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>云上党 · 非遗项目专题地图</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .category-tree { margin-bottom: 16px; }
+    .tree-item { padding: 12px 16px; border: 2px solid #d5eadf; background: linear-gradient(135deg, #ffffff, #f8fffb); color: #144d35; font-weight: 700; font-size: 14px; text-align: left; cursor: pointer; transition: all 0.3s ease; border-radius: 10px; margin-bottom: 8px; box-shadow: 0 4px 12px rgba(41, 112, 79, 0.08); }
+    .tree-item:hover { border-color: #50c878; background: linear-gradient(135deg, #f4fff9, #ecfdf5); transform: translateY(-1px); }
+    .tree-item.active { background: linear-gradient(135deg, #1f9d64, #50c878); color: #fff; border-color: #1f9d64; }
+    .tree-item .arrow { display: inline-block; width: 16px; text-align: center; margin-right: 8px; transition: transform 0.3s; }
+    .tree-item.active .arrow { transform: rotate(90deg); }
+    .tree-item .count { float: right; font-size: 12px; opacity: 0.8; }
+    .sub-list { display: none; padding-left: 24px; margin-bottom: 8px; max-height: 300px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: #50c878 #e8f5eb; }
+    .sub-list.active { display: block; }
+    .sub-list::-webkit-scrollbar { width: 6px; }
+    .sub-list::-webkit-scrollbar-track { background: #e8f5eb; border-radius: 3px; }
+    .sub-list::-webkit-scrollbar-thumb { background: #50c878; border-radius: 3px; }
+    .sub-list::-webkit-scrollbar-thumb:hover { background: #1f9d64; }
+    .sub-item { padding: 8px 12px; background: rgba(255, 255, 255, 0.8); border-radius: 8px; margin-bottom: 4px; cursor: pointer; transition: all 0.2s; font-size: 13px; color: #144d35; }
+    .sub-item:hover { background: rgba(80, 200, 120, 0.1); padding-left: 16px; }
+    .sub-item.active { background: rgba(31, 157, 100, 0.15); font-weight: 700; }
+  </style>
+</head>
+<body class="map-page">
+  <main class="shell">
+    <header class="topbar">
+      <div class="header-bg">
+        <img src="非遗图片/上党八音会.jpg" alt="非遗背景" />
+      </div>
+      <div class="brand">
+        <h1>云上党 · 非遗项目专题地图</h1>
+        <p>以高德地图为底图，展示上党区非物质文化遗产分布与详情。</p>
+      </div>
+      <nav class="nav">
+        <a href="index.html">返回首页</a>
+        <a class="primary" href="非遗大屏.html">数据大屏</a>
+      </nav>
+    </header>
+    <section class="grid">
+      <aside class="panel sidebar sidebar-bg-feiyi">
+        <input id="search" class="search" placeholder="搜索非遗项目名称、乡镇" />
+        <div id="categoryTree" class="category-tree"></div>
+      </aside>
+      <section class="panel map-wrap">
+        <div id="map"></div>
+        <div id="fallbackMap" class="fallback-map">
+          <div class="fallback-region"></div>
+          <div id="fallbackPopup" class="fallback-popup"></div>
+        </div>
+        <div id="status" class="status"></div>
+        <button id="centerBtn" class="center-btn">居中上党区</button>
+      </section>
+    </section>
+  </main>
+  <script src="config.js?v=20260702"></script>
+  <script src="data.js?v=20260702"></script>
+  <script src="app.js?v=20260702"></script>
+  <script src="page-enter.js"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>云上党 · 非遗项目数据大屏</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .feiyi-image { width: 100%; max-height: 200px; border-radius: 8px; object-fit: contain; border: 2px solid #d5eadf; cursor: zoom-in; background: #f9fff9; margin-top: 12px; }
+    .lightbox-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: none; justify-content: center; align-items: center; cursor: zoom-out; }
+    .lightbox-overlay.visible { display: flex; }
+    .lightbox-image { max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); cursor: zoom-out; animation: lightboxFadeIn 0.3s ease; }
+    @keyframes lightboxFadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    .lightbox-close { position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; color: #fff; font-size: 24px; cursor: pointer; display: flex; justify-content: center; align-items: center; }
+    .lightbox-close:hover { background: rgba(255,255,255,0.3); }
+    .lightbox-caption { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); color: #fff; font-size: 16px; text-align: center; background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 20px; }
+    #pointList { max-height: 280px; overflow-y: auto; overflow-x: hidden; padding-right: 4px; }
+    #detailCard { max-height: 450px; overflow-y: auto; }
+    .dash-grid { grid-template-rows: auto auto min-content auto; gap: 16px; padding: 16px; }
+    .dash-layout { grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .col { grid-auto-rows: min-content; gap: 16px; }
+    .card { overflow: visible; }
+    #miniMap { height: 320px; }
+    #miniMap::before { inset: 8% 10% 9% 8%; }
+  </style>
+</head>
+<body>
+  <main class="dash-grid">
+    <header class="topbar">
+      <div class="brand">
+        <h1>云上党 · 非遗项目数据大屏</h1>
+        <p>总览区域非物质文化遗产资源态势，并与地图点位联动展示单点详情。</p>
+      </div>
+      <nav class="nav">
+        <a href="index.html">返回首页</a>
+        <a class="primary" id="backMap" href="feiyi.html">返回地图</a>
+      </nav>
+    </header>
+    <section class="kpis" id="kpis"></section>
+    <section class="dash-layout">
+      <div class="col">
+        <section class="card"><h2>乡镇非遗数量排行</h2><div class="bar-list" id="townBars"></div></section>
+        <section class="card"><h2>类别分布</h2><div class="bar-list" id="categoryBars"></div></section>
+      </div>
+      <div class="col">
+        <section class="card detail-card" id="detailCard"><h2>当前非遗项目详情</h2><select class="dash-select" id="pointSelect"></select><div id="detailContent"></div></section>
+        <section class="card"><h2>点位分布示意</h2><div class="mini-map" id="miniMap"></div></section>
+      </div>
+      <div class="col">
+        <section class="card">
+          <h2>级别与类别分析</h2>
+          <div class="donuts">
+            <div class="donut-card"><div class="donut" id="levelDonut"></div><div class="legend" id="levelLegend"></div></div>
+            <div class="donut-card"><div class="donut" id="categoryDonut"></div><div class="legend" id="categoryLegend"></div></div>
+          </div>
+        </section>
+        <section class="card"><h2>非遗项目列表</h2><div class="list" id="pointList"></div></section>
+      </div>
+    </section>
+    <footer class="footer"><span>数据来源：上党区文旅局</span><span>联动字段：非遗编号 id</span></footer>
+    <div id="lightbox" class="lightbox-overlay">
+      <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+      <img id="lightboxImg" class="lightbox-image" src="" alt="" />
+      <div id="lightboxCaption" class="lightbox-caption"></div>
+    </div>
+  </main>
+  <script src="data.js"></script>
+  <script src="非遗大屏.js"></script>
+  <script src="page-enter.js"></script>
+  <script src="dash-align.js"></script>
+</body>
+</html>
