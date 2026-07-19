@@ -776,14 +776,38 @@ body.entry-page {
 /* ============ 手机端全面适配 (≤768px) ============ */
 @media (max-width: 768px) {
   /* 入口页 */
-  .entry-shell { padding: 20px 0; }
-  .entry-header { margin-bottom: 20px; }
-  .carousel-card { flex-direction: column; }
+  .entry-brand {
+    top: 10px; left: 12px; gap: 6px;
+    opacity: 1;
+  }
+  .entry-brand .brand-logo {
+    width: 36px; height: 36px;
+  }
+  .entry-brand .brand-text {
+    font-size: 12px;
+  }
+  .entry-shell {
+    padding: 56px 0 20px;
+    width: 96vw;
+  }
+  .entry-header { margin-bottom: 16px; }
+  .entry-header h1 { font-size: 28px; }
+  .entry-carousel-container { border-radius: 12px; }
+  .carousel-card {
+    flex-direction: column;
+    min-height: auto;
+  }
   .card-image { width: 100%; height: 180px; }
-  .card-content { padding: 20px; }
-  .card-content h3 { font-size: 20px; }
-  .entry-brand .brand-logo { width: 26px; height: 26px; }
-  .entry-brand .brand-text { font-size: 11px; }
+  .card-content { padding: 16px; }
+  .card-content h3 { font-size: 20px; margin-bottom: 8px; letter-spacing: 1px; }
+  .card-content p { font-size: 14px; line-height: 1.6; }
+  .card-content .card-desc { font-size: 12px; margin-top: 6px; }
+  .carousel-prev, .carousel-next {
+    width: 32px; height: 32px;
+    font-size: 14px;
+  }
+  .carousel-prev { left: 4px; }
+  .carousel-next { right: 4px; }
 
   /* 地图页整体布局 */
   body.map-page { overflow: hidden; }
