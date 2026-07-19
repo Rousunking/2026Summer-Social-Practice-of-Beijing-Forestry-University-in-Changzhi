@@ -773,8 +773,9 @@ body.entry-page {
   font-weight: 600;
   letter-spacing: 0.5px;
 }
-/* 入口页响应式 */
+/* ============ 手机端全面适配 (≤768px) ============ */
 @media (max-width: 768px) {
+  /* 入口页 */
   .entry-shell { padding: 20px 0; }
   .entry-header { margin-bottom: 20px; }
   .carousel-card { flex-direction: column; }
@@ -783,4 +784,79 @@ body.entry-page {
   .card-content h3 { font-size: 20px; }
   .entry-brand .brand-logo { width: 26px; height: 26px; }
   .entry-brand .brand-text { font-size: 11px; }
+
+  /* 地图页整体布局 */
+  body.map-page { overflow: hidden; }
+  .map-page .shell {
+    height: 100vh; height: 100dvh;
+    padding: 0; gap: 0;
+    grid-template-rows: auto 1fr;
+  }
+
+  /* 顶部栏紧凑化 */
+  .topbar {
+    padding: 8px 12px;
+    flex-direction: row; align-items: center;
+    gap: 8px; flex-wrap: nowrap;
+  }
+  .topbar .header-bg { display: none; }
+  .topbar .brand { flex: 1; min-width: 0; }
+  .topbar .brand h1 {
+    font-size: 15px; line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .topbar .brand p { display: none; }
+  .topbar .nav { gap: 4px; flex-shrink: 0; }
+  .topbar .nav a {
+    padding: 5px 8px; font-size: 11px;
+    white-space: nowrap;
+  }
+
+  /* 网格布局：侧边栏+地图 */
+  .map-page .grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(80px, 30vh) 1fr;
+    height: 100%; min-height: 0; gap: 0;
+    overflow: hidden;
+  }
+
+  /* 侧边栏紧凑化 */
+  .map-page .sidebar {
+    max-height: none; overflow-y: auto;
+    padding: 8px 10px; border-radius: 0;
+    border-left: none; border-right: none;
+    grid-template-rows: auto auto 1fr;
+  }
+  .sidebar .search { padding: 8px 10px; font-size: 13px; }
+  .sidebar .layers { gap: 0; }
+  .sidebar .layer { padding: 6px 10px; font-size: 12px; }
+  .sidebar .list { font-size: 13px; }
+
+  /* 地图容器 - 确保可见 */
+  .map-page .map-wrap {
+    height: auto; min-height: 0;
+    flex: 1; position: relative;
+  }
+  .map-page .map-wrap #map {
+    width: 100%; height: 100%;
+    position: absolute; inset: 0;
+  }
+
+  /* 地图控件 */
+  .center-btn {
+    bottom: 10px; right: 10px;
+    padding: 6px 10px; font-size: 12px;
+  }
+  .status { font-size: 11px; padding: 5px 8px; }
+
+  /* 弹窗紧凑化 */
+  .popup { max-width: 260px; font-size: 12px; }
+  .popup h3 { font-size: 14px; }
+
+  /* 大屏页 */
+  .dash-grid { padding: 10px; gap: 10px; }
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .dash-layout { grid-template-columns: 1fr; }
+  .facts, .donuts { grid-template-columns: 1fr; }
+  .topbar .brand h1 { font-size: 15px; }
 }
