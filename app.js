@@ -358,6 +358,18 @@ function renderList(rows){
   if(!rows) rows = IS_TOUR_PAGE || IS_FEIYI_PAGE ? currentTourData() : POINTS;
   const currentLayer = currentTourLayer();
   if(IS_FEIYI_PAGE){
+    const keyword = qs("#search").value.trim();
+    if(keyword){
+      const html = rows.length ? rows.map(p => `
+        <div class="item ${p.id===activeId?'active':''}" data-id="${esc(p.id)}">
+          <strong>${esc(pointTitle(p))}</strong>
+          <span>${esc(p.level)}｜${esc(p.category)}｜${esc(p.town)}</span>
+        </div>
+      `).join("") : `<div style="padding:20px;text-align:center;color:#999;">未找到匹配的非遗项目</div>`;
+      qs("#categoryTree").innerHTML = `<div style="margin-bottom:12px;font-size:13px;color:#144d35;">搜索结果（${rows.length} 条）：</div>${html}`;
+      qsa("#categoryTree .item").forEach(el => el.addEventListener("click", () => selectPoint(el.dataset.id)));
+      return;
+    }
     renderFeiyiTree();
     return;
   }
@@ -522,14 +534,23 @@ function renderFallback(){
   fm.querySelectorAll(".dot, .layer-dot").forEach(dot => dot.remove());
   
   if(IS_FEIYI_PAGE){
+    const keyword = qs("#search").value.trim();
     const layer = currentTourLayer();
-    const data = currentTourData();
-    if(!layer || !data.length){
-      statusEl.innerHTML = "请选择非遗级别目录查看对应点位";
-      return;
+    let data;
+    let statusText;
+    if(keyword){
+      data = filteredRows();
+      statusText = `搜索结果：${data.length} 条非遗项目`;
+    } else {
+      data = currentTourData();
+      if(!layer || !data.length){
+        statusEl.innerHTML = "请选择非遗级别目录查看对应点位，或在搜索框中输入关键词搜索";
+        return;
+      }
+      const config = FEIYI_LAYER_CONFIG[layer];
+      statusText = `未检测到可用高德 Key，当前显示 ${data.length} 条${config.label}本地点位示意。配置 <b>config.js</b> 后将自动加载高德地图。`;
     }
-    const config = FEIYI_LAYER_CONFIG[layer];
-    statusEl.innerHTML = `未检测到可用高德 Key，当前显示 ${data.length} 条${config.label}本地点位示意。配置 <b>config.js</b> 后将自动加载高德地图。`;
+    statusEl.innerHTML = statusText;
     data.forEach(p => {
       if(!Number.isFinite(p.lng) || !Number.isFinite(p.lat)) return;
       const {x,y} = pointXY(p, allTourPoints());
@@ -696,7 +717,13 @@ function closeInfo(){
 function filteredRows(){
   if(IS_FEIYI_PAGE){
     const keyword = qs("#search").value.trim().toLowerCase();
-    const data = currentTourData();
+    const layer = currentTourLayer();
+    let data;
+    if(keyword && !layer){
+      data = allTourPoints();
+    } else {
+      data = currentTourData();
+    }
     if(!keyword) return data;
     return data.filter(p => [p.name, p.town, p.category].some(v => String(v).toLowerCase().includes(keyword)));
   }
@@ -712,12 +739,28 @@ function filteredRows(){
 }
 
 function syncMarkers(rows){
-  if(IS_FEIYI_PAGE) return;
-  if(!rows) rows = IS_TOUR_PAGE ? currentTourData() : filteredRows();
+  if(!rows) rows = IS_TOUR_PAGE || IS_FEIYI_PAGE ? filteredRows() : filteredRows();
   const visibleIds = new Set(rows.map(p => p.id));
   markers.forEach(({ marker, point }) => {
-    const currentLayer = IS_TOUR_PAGE ? currentTourLayer() : "tree";
-    const shouldShow = visibleIds.has(point.id) && activeLayers.has(currentLayer);
+    let shouldShow;
+    if(IS_FEIYI_PAGE){
+      const keyword = qs("#search").value.trim();
+      if(keyword){
+        shouldShow = visibleIds.has(point.id);
+      } else {
+        const layer = currentTourLayer();
+        const config = FEIYI_LAYER_CONFIG[layer];
+        if(!config){
+          shouldShow = false;
+        } else {
+          const layerData = FEIYI_DATA[config.subType] || [];
+          shouldShow = layerData.some(d => d.id === point.id);
+        }
+      }
+    } else {
+      const currentLayer = IS_TOUR_PAGE ? currentTourLayer() : "tree";
+      shouldShow = visibleIds.has(point.id) && activeLayers.has(currentLayer);
+    }
     marker.setMap(shouldShow ? map : null);
   });
 }
