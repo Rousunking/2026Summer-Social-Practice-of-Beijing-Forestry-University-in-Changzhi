@@ -625,8 +625,9 @@ function selectPoint(id){
   const p = IS_FEIYI_PAGE ? tourPointById(id) : (IS_TOUR_PAGE ? tourPointById(id) : (POINTS.find(p => p.id === id) || POINTS[0]));
   
   if(IS_FEIYI_PAGE){
+    const keyword = qs("#search").value.trim();
     const layer = currentTourLayer();
-    if(!layer){
+    if(!layer && !keyword){
       statusEl.innerHTML = "请先选择非遗级别目录";
       return;
     }
@@ -648,6 +649,16 @@ function selectPoint(id){
       map.setZoomAndCenter(15, position, true);
       infoWindow.setContent(pointHtml(p));
       infoWindow.open(map, position);
+    } else {
+      renderFallback();
+      const popup = qs("#fallbackPopup");
+      const {x, y} = pointXY(p, allTourPoints());
+      popup.innerHTML = `<button class="popup-close" title="关闭">&times;</button>` + pointHtml(p);
+      popup.style.left = `${x}%`;
+      popup.style.top = `${y}%`;
+      popup.classList.toggle("flip-below", y < 30);
+      popup.classList.add("visible");
+      popup.querySelector(".popup-close")?.addEventListener("click", closeInfo);
     }
     return;
   }
